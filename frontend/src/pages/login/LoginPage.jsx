@@ -27,27 +27,7 @@ const LoginPage = () => {
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      {/* Header/Navbar */}
-      <header className="bg-white shadow-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
-          <span className="text-2xl font-bold text-orange-600">EthioLink</span>
-          <div className="flex items-center space-x-4">
-            <input
-              type="text"
-              placeholder="Search your profile or settings..."
-              className="px-3 py-1 border border-gray-300 rounded-md text-sm w-64 focus:ring-orange-500 focus:border-orange-500"
-            />
-            <button className="text-xl text-gray-600 hover:text-orange-500">
-              🔔
-            </button>
-            <img
-              className="w-9 h-9 rounded-full object-cover"
-              src={profile.avatarUrl}
-              alt="User"
-            />
-          </div>
-        </div>
-      </header>
+    
 
       {/* Centered Login Box */}
       <div className="flex-grow flex items-start justify-center px-4 mt-20">
