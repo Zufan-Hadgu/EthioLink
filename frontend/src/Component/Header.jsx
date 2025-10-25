@@ -1,12 +1,22 @@
 // Update frontend/src/Components/Header.jsx
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
-
+import { useAuth } from './context/AuthContext'
+import { auth } from '../utility/fierbase'
 
 export default function Header({ onMenuClick }) {
   const location = useLocation()
+  const { currentUser, userProfile } = useAuth()
   const hideSidebarPages = ['/login', '/signup']
   const shouldShowMenu = !hideSidebarPages.includes(location.pathname)
+
+  const handleLogout = async () => {
+    try {
+      await auth.signOut()
+    } catch (error) {
+      console.error('Error signing out:', error)
+    }
+  }
 
   return (
     <header className="bg-white shadow-sm sticky top-0 z-10">
@@ -43,14 +53,40 @@ export default function Header({ onMenuClick }) {
           </div>
         )}
         
-        {/* Auth buttons */}
+        {/* Auth section - different content based on login status */}
         <div className="flex items-center space-x-4">
-          <Link to="/login"><button className="text-gray-600 hover:text-orange-500 font-medium">
-            Login
-          </button></Link>
-          <Link to="/signup"><button className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 font-medium">
-            Sign Up
-          </button></Link>
+          {currentUser ? (
+            // Logged in user - show logout and profile
+            <>
+              <button 
+                onClick={handleLogout}
+                className="text-gray-600 hover:text-orange-500 font-medium"
+              >
+                Logout
+              </button>
+              <Link to="/profile">
+                <button className="w-10 h-10 bg-orange-600 rounded-full flex items-center justify-center hover:bg-orange-700 transition-colors">
+                  <span className="text-white font-medium text-sm">
+                    {userProfile?.name ? userProfile.name.charAt(0).toUpperCase() : 'U'}
+                  </span>
+                </button>
+              </Link>
+            </>
+          ) : (
+            // Not logged in - show login and signup
+            <>
+              <Link to="/login">
+                <button className="text-gray-600 hover:text-orange-500 font-medium">
+                  Login
+                </button>
+              </Link>
+              <Link to="/signup">
+                <button className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 font-medium">
+                  Sign Up
+                </button>
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </header>
