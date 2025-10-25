@@ -210,7 +210,7 @@ const handleLogin = async (e) => {
             if (userRole === 'Supporter') {
                 navigate('/');
             } else {
-                navigate('/home'); 
+                navigate('/b'); 
             }
 
         } catch (err) {
