@@ -9,7 +9,7 @@ export default function Sidebar({ isOpen, onClose }) {
   const discoverItems = [
     { name: 'All Products', path: '/products', icon: <ShoppingBagIcon className='h-6 w-6 text-gray-500'/> },
     { name: 'Startups', path: '/startups', icon: <GlobeAltIcon className='h-6 w-6 text-gray-500'/> },
-    { name: 'Explore', path: '/explore', icon: <UserIcon className='h-6 w-6 text-gray-500'/> },
+    { name: 'Explore', path: '/reel', icon: <UserIcon className='h-6 w-6 text-gray-500'/> },
   ]
   
     
