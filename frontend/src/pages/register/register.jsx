@@ -243,7 +243,7 @@ const Register = () => {
         navigate('/login'); 
       } else {
         // Redirect all other roles (Entrepreneur, Investor) to the general home page
-        navigate('/biussness'); 
+        navigate('/login'); 
       }
       // NOTE: Ensure your route paths (e.g., '/home', '/supporter-home') are correct in your App.js/router setup.
 
