@@ -49,81 +49,15 @@ const posts = [
 ];
 
 export default function Explore() {
-  const [mobileOpen, setMobileOpen] = useState(false);
+   
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      {/* Sidebar */}
-      <aside
-        className={`hidden md:flex md:flex-col w-72 bg-white border-r border-gray-200 p-6`}
-      >
-        <div className="flex items-center gap-3 mb-8">
-          <div className="w-9 h-9 rounded-md bg-gradient-to-br from-orange-200 to-orange-400 flex items-center justify-center text-white font-bold">
-            <i className="fa-solid fa-gem"></i>
-          </div>
-          <span className="text-xl font-semibold text-orange-500">PitchHub</span>
-        </div>
-
-        <nav className="flex flex-col gap-3 text-sm">
-          <a className="flex items-center gap-3 text-gray-700 hover:text-orange-500">
-            <i className="fa-solid fa-house text-base w-5"></i> Home
-          </a>
-          <a className="flex items-center gap-3 text-gray-700 hover:text-orange-500">
-            <i className="fa-solid fa-compass text-base w-5"></i> Discovery
-          </a>
-          <a className="flex items-center gap-3 text-gray-800 bg-gray-100 rounded-lg px-3 py-2 font-medium text-orange-500">
-            <i className="fa-regular fa-lightbulb text-base w-5"></i> Explore
-          </a>
-        </nav>
-
-        <div className="mt-auto pt-6 text-xs text-gray-400 border-t border-gray-100">
-          <div className="flex gap-4">
-            <a>Resources</a>
-            <a>Legal</a>
-            <a>Contact Us</a>
-          </div>
-          <p className="mt-4 text-gray-300 text-sm">Made with 💜</p>
-        </div>
-      </aside>
-
-      {/* Mobile top bar */}
-      <div className="md:hidden fixed top-0 left-0 right-0 bg-white border-b z-40">
-        <div className="flex items-center justify-between px-4 h-14">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-md bg-gradient-to-br from-orange-200 to-orange-400 flex items-center justify-center text-white font-bold">
-              <i className="fa-solid fa-gem"></i>
-            </div>
-            <span className="font-semibold">PitchHub</span>
-          </div>
-          <button
-            onClick={() => setMobileOpen(!mobileOpen)}
-            className="p-2 rounded-md hover:bg-gray-100"
-            aria-label="menu"
-          >
-            <i className="fa-solid fa-bars"></i>
-          </button>
-        </div>
-
-        {mobileOpen && (
-          <div className="px-4 pb-4">
-            <nav className="flex flex-col gap-2 text-sm">
-              <a className="flex items-center gap-3 text-gray-700">
-                <i className="fa-solid fa-house w-5"></i> Home
-              </a>
-              <a className="flex items-center gap-3 text-gray-700">
-                <i className="fa-solid fa-compass w-5"></i> Discovery
-              </a>
-              <a className="flex items-center gap-3 text-orange-500 font-medium">
-                <i className="fa-regular fa-lightbulb w-5"></i> Explore
-              </a>
-            </nav>
-          </div>
-        )}
-      </div>
+      
 
       {/* Main content area */}
       <main className="flex-1 overflow-auto">
-        <div className="max-w-2xl mx-auto px-6 md:px-10 pt-24 md:pt-12 pb-20">
+        <div className="max-w-2xl  px-6 md:px-10 pt-24 md:pt-12 pb-20">
           <header className="text-center mb-8">
             <h1 className="text-2xl md:text-3xl font-extrabold text-gray-800">
               Explore Innovative Pitches
