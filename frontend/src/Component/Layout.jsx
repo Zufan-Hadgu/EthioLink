@@ -3,7 +3,7 @@ import React, { useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import Header from './Header'
 import Footer from './Footer'
-import Sidebar from './Sidebar'
+import Sidebar from './SideBar'
 
 export default function Layout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
