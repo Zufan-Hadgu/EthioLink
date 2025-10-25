@@ -14,7 +14,7 @@ import {
 
 export default function Sidebar({ isOpen, onClose }) {
   const location = useLocation()
-  const { currentUser, userProfile } = useAuth()
+  const {userProfile } = useAuth()
   
   // Items for supporters (default users)
   const discoverItems = [
