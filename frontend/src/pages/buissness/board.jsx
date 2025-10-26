@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
+import { useAuth } from '../../Component/context/AuthContext';
 import {
   AreaChart,
   Area,
@@ -201,6 +202,28 @@ const StatCard = ({ title, value, change }) => (
 );
 
 const DashboardPage = () => {
+  const { userProfile } = useAuth();
+  const [showWelcomeMessage, setShowWelcomeMessage] = useState(false);
+
+  // Check if this is a newly registered business
+  useEffect(() => {
+    // Check local storage for business registration
+    const userProfileData = localStorage.getItem('userProfile');
+    if (userProfileData) {
+      const profile = JSON.parse(userProfileData);
+      if (profile.businessRegistrationCompletedAt) {
+        const registrationDate = new Date(profile.businessRegistrationCompletedAt);
+        const now = new Date();
+        const hoursSinceRegistration = (now - registrationDate) / (1000 * 60 * 60);
+        
+        // Show welcome message if registered within the last 24 hours
+        if (hoursSinceRegistration < 24) {
+          setShowWelcomeMessage(true);
+        }
+      }
+    }
+  }, []);
+
   // Dummy data for the stat cards, based on the image's structure
   const stats = [
     { title: "Total Listings", value: "1,248", change: "+12%" },
@@ -211,16 +234,54 @@ const DashboardPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
+      {/* Welcome Message for New Businesses */}
+      {showWelcomeMessage && (
+        <div className="mb-8 p-6 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-xl shadow-sm">
+          <div className="flex items-start justify-between">
+            <div className="flex items-start space-x-4">
+              <div className="flex-shrink-0">
+                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                  <span className="text-2xl">🎉</span>
+                </div>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-green-800 mb-2">
+                  Welcome to EthioLink!
+                </h3>
+                <p className="text-green-700 mb-4">
+                  Your business registration is complete! You're now ready to start showcasing your products to potential supporters and investors. 
+                  Click the button below to upload your first product.
+                </p>
+                <Link to="/create">
+                  <button className="bg-orange-600 hover:bg-orange-700 text-white font-semibold py-2 px-6 rounded-lg shadow-md transition-all duration-200">
+                    Upload Your First Product
+                  </button>
+                </Link>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowWelcomeMessage(false)}
+              className="text-green-600 hover:text-green-800 transition duration-150"
+            >
+              <span className="sr-only">Close</span>
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Dashboard Header/Actions (Matching image style) */}
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-extrabold text-gray-800">
           Business Dashboard
         </h1>
         <div className="space-x-4">
-          <Link to={'/create'}><button className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition duration-150" >
+          <Link to={'/create'}><button className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-orange-300 transition-all duration-200" >
             Create New Listing
           </button></Link>
-          <button className="px-4 py-2 bg-orange-600 rounded-lg text-sm font-medium text-white hover:bg-orange-700 shadow-md transition duration-150">
+          <button className="px-4 py-2 bg-orange-600 rounded-lg text-sm font-medium text-white hover:bg-orange-700 shadow-md transition-all duration-200">
             Set Up New Campaign
           </button>
         </div>

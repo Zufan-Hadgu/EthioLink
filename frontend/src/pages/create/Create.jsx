@@ -1,30 +1,20 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-// 🟢 FIREBASE & HOOKS IMPORTS
 import { useAuth } from '../../Component/context/AuthContext';
-import { 
-    db, 
-    storage, 
-    collection, 
-    addDoc, 
-    ref, 
-    uploadBytes, 
-    getDownloadURL 
-} from '../../utility/fierbase'; // Assuming the corrected imports are in here
 
 // Main App component that renders the full Edit Listing interface.
 const CreatePage = () => {
     const navigate = useNavigate();
-    const { currentUser, userProfile } = useAuth();
+    const { userProfile } = useAuth();
 
     // ✅ 1. Updated State: Set all fields to empty strings for a real 'Create' form
-    const [listingData, setListingData] = useState({
-        title: "",    // Changed from default text to empty string
-        tagline: "",  // Changed from default text to empty string
-        story: "",    // Changed from default text to empty string
-        category: "Agriculture", // Keep a default category
-        tags: [], // Changed from default tags to an empty array
-    });
+    const [title, setTitle] = useState("");
+    const [tagline, setTagline] = useState("");
+    const [story, setStory] = useState("");
+    const [category, setCategory] = useState("Agriculture");
+    const [tags, setTags] = useState([]);
+
+
     
     // 2. State for image file and upload/submission status (No changes needed)
     const [imageFile, setImageFile] = useState(null);
@@ -35,13 +25,28 @@ const CreatePage = () => {
     // State for the Listing Visibility toggle switch
     const [isListingPublic, setIsListingPublic] = useState(true);
 
-    // Function to update input text fields (No changes needed here)
-    const handleInputChange = (e) => {
-        const { id, value } = e.target;
-        setListingData(prev => ({ ...prev, [id]: value }));
-    };
+    // Function to update input text fields
+    const handleInputChange = useCallback((e) => {
+        const { name, value } = e.target;
+        switch(name) {
+            case 'title':
+                setTitle(value);
+                break;
+            case 'tagline':
+                setTagline(value);
+                break;
+            case 'story':
+                setStory(value);
+                break;
+            case 'category':
+                setCategory(value);
+                break;
+            default:
+                break;
+        }
+    }, []);
 
-    // Function to handle image file selection (No changes needed here)
+    // Function to handle image file selection
     const handleImageChange = (e) => {
         if (e.target.files[0]) {
             const file = e.target.files[0];
@@ -56,8 +61,8 @@ const CreatePage = () => {
         if (e.key === 'Enter' && e.target.value.trim() !== '') {
             e.preventDefault();
             const newTag = e.target.value.trim().toLowerCase();
-            if (!listingData.tags.includes(newTag)) {
-                setListingData(prev => ({ ...prev, tags: [...prev.tags, newTag] }));
+            if (!tags.includes(newTag)) {
+                setTags(prev => [...prev, newTag]);
             }
             e.target.value = ''; // Clear input field
         }
@@ -65,64 +70,64 @@ const CreatePage = () => {
 
     // Function to remove a tag
     const handleRemoveTag = (tagToRemove) => {
-        setListingData(prev => ({
-            ...prev,
-            tags: prev.tags.filter(tag => tag !== tagToRemove)
-        }));
+        setTags(prev => prev.filter(tag => tag !== tagToRemove));
     };
 
 
-    // 🚀 THE CORE SUBMISSION LOGIC (No changes needed here)
-    const handleSubmitListing = async (e) => {
+    // 🚀 THE CORE SUBMISSION LOGIC - Save to Local Storage
+    const handleSubmitListing = (e) => {
         e.preventDefault();
         setError(null);
 
         // Basic validation
-        if (!listingData.title || !listingData.tagline || !listingData.story || !imageFile) {
+        if (!title || !tagline || !story || !imageFile) {
             setError("Please fill in the Title, Tagline, Story, and upload a Product Image.");
             return;
-        }
-
-        if (!currentUser) {
-             setError("You must be logged in to create a listing.");
-             return;
         }
 
         setLoading(true);
 
         try {
-            // --- 1. Upload Image to Firebase Storage ---
-            const fileExtension = imageFile.name.split('.').pop();
-            const storagePath = `products/${currentUser.uid}/${Date.now()}.${fileExtension}`;
-            const imageRef = ref(storage, storagePath);
+            // Convert image to base64 for local storage
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const imageBase64 = event.target.result;
+                
+                // Prepare product data
+                const productData = {
+                    title: title,
+                    tagline: tagline,
+                    story: story,
+                    category: category,
+                    tags: tags,
+                    imageBase64: imageBase64,
+                    imageFileName: imageFile.name,
+                    status: isListingPublic ? 'Public' : 'Draft',
+                    createdAt: new Date().toISOString(),
+                    id: Date.now().toString() // Simple ID generation
+                };
 
-            const uploadResult = await uploadBytes(imageRef, imageFile);
-            const imageUrl = await getDownloadURL(uploadResult.ref);
-            
-            console.log("Image uploaded successfully:", imageUrl);
+                // Get existing products from local storage
+                const existingProducts = JSON.parse(localStorage.getItem('products') || '[]');
+                
+                // Add new product
+                const updatedProducts = [...existingProducts, productData];
+                
+                // Save to local storage
+                localStorage.setItem('products', JSON.stringify(updatedProducts));
 
+                console.log("Product saved to local storage successfully!");
 
-            // --- 2. Prepare Data for Firestore ---
-            const newListing = {
-                ...listingData,
-                imageUrl: imageUrl, // Add the generated URL
-                ownerId: currentUser.uid,
-                ownerRole: userProfile?.userRole || 'Entrepreneur',
-                status: isListingPublic ? 'Public' : 'Draft',
-                createdAt: new Date(),
+                // Show success message and redirect
+                alert("Product successfully uploaded! You can now view it in your dashboard.");
+                navigate('/b');
             };
 
-            // --- 3. Save Data to Firestore ---
-            const docRef = await addDoc(collection(db, "products"), newListing);
-            console.log("Document written with ID: ", docRef.id);
-
-            // --- 4. Redirect on Success ---
-            alert("Listing successfully submitted!");
-            navigate('/dashboard');
+            reader.readAsDataURL(imageFile);
 
         } catch (err) {
             console.error("Error creating listing:", err);
-            setError(`Failed to create listing: ${err.message}. Check console for details and ensure Firebase Storage is initialized correctly.`);
+            setError(`Failed to create listing: ${err.message}`);
         } finally {
             setLoading(false);
         }
@@ -157,22 +162,22 @@ const CreatePage = () => {
         <div className="flex space-x-3">
             <button 
                 type="button" 
-                className="flex items-center px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition duration-150 text-sm font-medium"
+                className="flex items-center px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-orange-300 transition-all duration-200 text-sm font-medium"
             >
                 Preview
             </button>
             <button 
                 type="button" 
-                className="flex items-center px-4 py-2 text-orange-600 bg-orange-50 border border-orange-600 rounded-lg hover:bg-orange-100 transition duration-150 text-sm font-medium"
+                className="flex items-center px-4 py-2 text-orange-600 bg-white border border-orange-300 rounded-lg hover:bg-orange-50 hover:border-orange-400 transition-all duration-200 text-sm font-medium"
             >
                 Save Draft
             </button>
             <button 
                 type="submit" 
-                className="flex items-center px-4 py-2 text-white bg-orange-500 rounded-lg hover:bg-orange-600 shadow-md transition duration-150 text-sm font-medium disabled:opacity-50"
+                className="flex items-center px-6 py-2 text-white bg-orange-600 rounded-lg hover:bg-orange-700 shadow-md transition-all duration-200 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={isSubmitting}
             >
-                {isSubmitting ? 'Submitting...' : 'Submit Listing'}
+                {isSubmitting ? 'Uploading...' : 'Upload Product'}
             </button>
         </div>
     );
@@ -185,12 +190,12 @@ const CreatePage = () => {
                 <div className="flex items-center space-x-4">
                     <span 
                         className="text-sm text-gray-500 cursor-pointer hover:text-gray-700"
-                        onClick={() => navigate('/dashboard')}
+                        onClick={() => navigate('/b')}
                     >
                         ← Back to Dashboard
                     </span>
                     <h1 className="text-2xl font-bold text-gray-900">
-                        Create/Edit Listing
+                        Upload Your Product
                     </h1>
                 </div>
                 <ActionButtons isSubmitting={loading} />
@@ -209,94 +214,93 @@ const CreatePage = () => {
                         
                         {/* Mobile Header (Hidden on Desktop) */}
                         <div className="md:hidden flex flex-col space-y-3 pt-2">
-                            <span className="text-sm text-gray-500 cursor-pointer" onClick={() => navigate('/dashboard')}>
+                            <span className="text-sm text-gray-500 cursor-pointer" onClick={() => navigate('/b')}>
                                 ← Back to Dashboard
                             </span>
                             <h1 className="text-2xl font-bold text-gray-900">
-                                Create/Edit Listing
+                                Upload Your Product
                             </h1>
                             <ActionButtons isSubmitting={loading} />
                         </div>
 
+                        {/* Welcome Message */}
+                        <div className="mb-8 p-6 bg-green-50 border border-green-200 rounded-lg">
+                            <h2 className="text-lg font-semibold text-green-800 mb-2">
+                                🎉 Welcome to EthioLink!
+                            </h2>
+                            <p className="text-green-700">
+                                Your business registration is complete! Now you can start uploading your products to showcase them to potential supporters and investors.
+                            </p>
+                        </div>
+
                         {/* --- 1. Listing Information Section --- */}
                         <Card
-                            title="Listing Information"
+                            title="Product Information"
                             subtitle="Provide basic details about your product or service."
                         >
                             <div className="space-y-6">
                                 {/* Listing Title */}
                                 <div>
                                     <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
-                                        Listing Title
+                                        Product Name
                                     </label>
                                     <input
                                         id="title"
+                                        name="title"
                                         type="text"
-                                        value={listingData.title}
+                                        value={title}
                                         onChange={handleInputChange}
                                         required
-                                        className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800 focus:ring-orange-500 focus:border-orange-500"
+                                        className="w-full p-3 border border-gray-300 rounded-lg bg-white text-gray-800 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200"
+                                        placeholder="Enter your product name"
+                                        autoComplete="off"
                                     />
                                 </div>
 
                                 {/* Short Tagline */}
                                 <div>
                                     <label htmlFor="tagline" className="block text-sm font-medium text-gray-700 mb-1">
-                                        Short Tagline
+                                        Product Tagline
                                     </label>
                                     <input
                                         id="tagline"
+                                        name="tagline"
                                         type="text"
-                                        value={listingData.tagline}
+                                        value={tagline}
                                         onChange={handleInputChange}
                                         required
-                                        className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800 focus:ring-orange-500 focus:border-orange-500"
+                                        className="w-full p-3 border border-gray-300 rounded-lg bg-white text-gray-800 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200"
                                         maxLength="100"
+                                        placeholder="Enter a catchy tagline for your product"
+                                        autoComplete="off"
                                     />
                                     <p className="text-xs text-right text-gray-500 mt-1">
-                                        Max 100 characters. {listingData.tagline.length}/100
+                                        Max 100 characters. {tagline.length}/100
                                     </p>
                                 </div>
                                 
-                                {/* URL Slug (Unchanged) */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Custom URL Slug
-                                    </label>
-                                    <div className="flex rounded-lg shadow-sm">
-                                        <span className="inline-flex items-center px-3 text-sm text-gray-500 bg-gray-100 border border-r-0 border-gray-300 rounded-l-lg">
-                                            www.visily.com/
-                                        </span>
-                                        <input
-                                            type="text"
-                                            defaultValue="innovative-solar-pump-approved"
-                                            readOnly
-                                            className="flex-1 block w-full p-3 border border-gray-300 rounded-none rounded-r-lg bg-gray-50 text-gray-800 focus:ring-orange-500 focus:border-orange-500"
-                                        />
-                                    </div>
-                                    <p className="text-xs text-gray-500 mt-1">
-                                        Unique identifier for your listing URL (Generated automatically).
-                                    </p>
-                                </div>
 
                             </div>
                         </Card>
 
                         {/* --- 2. Product Story Section --- */}
                         <Card
-                            title="Your Product Story"
-                            subtitle="Craft a compelling narrative to engage potential backers."
+                            title="Product Description"
+                            subtitle="Tell potential supporters about your product and its benefits."
                         >
                             <label htmlFor="story" className="block text-sm font-medium text-gray-700 mb-1">
                                 Detailed Description
                             </label>
                             <textarea
-                                id="story" // ✅ Ensure this ID matches the state key
+                                id="story"
+                                name="story"
                                 rows="6"
-                                value={listingData.story}
+                                value={story}
                                 onChange={handleInputChange}
                                 required
-                                className="w-full p-3 border border-gray-300 rounded-lg resize-none bg-gray-50 text-gray-800 focus:ring-orange-500 focus:border-orange-500"
+                                className="w-full p-3 border border-gray-300 rounded-lg resize-none bg-white text-gray-800 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200"
+                                placeholder="Describe your product in detail..."
+                                autoComplete="off"
                             />
                         </Card>
 
@@ -306,12 +310,19 @@ const CreatePage = () => {
                             subtitle="Upload high quality images of your product/service. Max 8 images."
                         >
                             {/* Image Upload Area */}
-                            <label htmlFor="image-upload" className="flex flex-col items-center justify-center p-10 border-2 border-dashed border-gray-300 rounded-xl text-center bg-gray-50 hover:border-orange-400 transition duration-150 cursor-pointer">
-                                {/* SVG Icon here... */}
-                                <p className="mt-2 text-sm text-gray-600">
+                            <label htmlFor="image-upload" className="flex flex-col items-center justify-center p-10 border-2 border-dashed border-gray-300 rounded-xl text-center bg-white hover:border-orange-400 hover:bg-orange-50 transition-all duration-200 cursor-pointer focus-within:ring-2 focus-within:ring-orange-500 focus-within:border-orange-500">
+                                <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mb-4">
+                                    <svg className="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                    </svg>
+                                </div>
+                                <p className="text-sm text-gray-600 mb-2">
                                     Drag & drop images here or click to upload
                                 </p>
-                                <button type="button" className="mt-3 px-4 py-2 text-sm font-medium text-orange-600 bg-white border border-orange-300 rounded-lg hover:bg-orange-50 shadow-sm">
+                                <p className="text-xs text-gray-500 mb-4">
+                                    Supports JPG, PNG, GIF up to 10MB
+                                </p>
+                                <button type="button" className="px-6 py-2 text-sm font-medium text-white bg-orange-600 border border-orange-600 rounded-lg hover:bg-orange-700 shadow-sm transition-all duration-200">
                                     Browse Files
                                 </button>
                                 {/* 🔴 Hidden file input */}
@@ -350,9 +361,10 @@ const CreatePage = () => {
                                 <div className="relative">
                                     <select
                                         id="category"
-                                        value={listingData.category}
+                                        name="category"
+                                        value={category}
                                         onChange={handleInputChange}
-                                        className="w-full p-3 border border-gray-300 appearance-none rounded-lg bg-gray-50 text-gray-800 focus:ring-orange-500 focus:border-orange-500"
+                                        className="w-full p-3 border border-gray-300 appearance-none rounded-lg bg-white text-gray-800 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200"
                                     >
                                         <option>Agriculture</option>
                                         <option>Technology</option>
@@ -376,8 +388,8 @@ const CreatePage = () => {
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                 Relevant Tags
                             </label>
-                            <div className="flex flex-wrap items-center gap-2 border border-gray-300 p-2 rounded-lg bg-gray-50 min-h-[50px]">
-                                {listingData.tags.map((tag) => (
+                            <div className="flex flex-wrap items-center gap-2 border border-gray-300 p-2 rounded-lg bg-white min-h-[50px] focus-within:ring-2 focus-within:ring-orange-500 focus-within:border-orange-500 transition-all duration-200">
+                                {tags.map((tag) => (
                                     <span
                                         key={tag}
                                         className="flex items-center px-3 py-1 text-sm font-medium text-orange-700 bg-orange-100 rounded-full"
@@ -397,7 +409,7 @@ const CreatePage = () => {
                                     type="text"
                                     placeholder="Add a tag and press Enter"
                                     onKeyDown={handleTagInput}
-                                    className="p-1 text-sm focus:outline-none bg-transparent"
+                                    className="p-1 text-sm focus:outline-none bg-transparent flex-1 min-w-[200px]"
                                 />
                             </div>
                             <p className="text-xs text-gray-500 mt-1">

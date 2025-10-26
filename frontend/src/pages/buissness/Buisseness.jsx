@@ -1,18 +1,20 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from '../../Component/context/AuthContext';
 
 // --- Utility Components ---
 
 // Reusable Tailwind classes for form inputs
 const inputClasses =
-  "w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition duration-150 ease-in-out text-gray-800";
+  "w-full p-3 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 text-gray-800";
 const fileInputClasses =
-  "block w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-600 hover:file:bg-orange-100 cursor-pointer";
+  "block w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-orange-600 file:text-white hover:file:bg-orange-700 cursor-pointer transition-all duration-200";
 
 const StepIndicator = ({ number, title, current }) => (
   <div className="flex items-center">
     {" "}
     <div
-      className={`w-6 h-6 flex items-center justify-center rounded-full text-sm font-semibold ${current ? "bg-orange-600 text-white" : "bg-gray-200 text-gray-500"
+      className={`w-6 h-6 flex items-center justify-center rounded-full text-sm font-semibold transition-all duration-200 ${current ? "bg-orange-600 text-white shadow-md" : "bg-gray-200 text-gray-500"
         }`}
     >
       {number}   {" "}
@@ -38,7 +40,7 @@ const Stepper = ({ currentStep }) => (
     />
     {" "}
     <div
-      className={`flex-grow h-px ${currentStep > 1 ? "bg-orange-600" : "bg-gray-300"
+      className={`flex-grow h-px transition-all duration-300 ${currentStep > 1 ? "bg-orange-600" : "bg-gray-300"
         }`}
     ></div>
     {" "}
@@ -48,43 +50,12 @@ const Stepper = ({ currentStep }) => (
       current={currentStep === 2}
     />
     {" "}
-    <div
-      className={`flex-grow h-px ${currentStep > 2 ? "bg-orange-600" : "bg-gray-300"
-        }`}
-    ></div>
-    {" "}
-    <StepIndicator
-      number={3}
-      title="Legal & Verification"
-      current={currentStep === 3}
-    />
-    {" "}
   </div>
 );
 
-const FormGroup = ({ label, type = "text", value, placeholder, children }) => (
-  <div>
-    {" "}
-    <label className="block text-sm font-medium text-gray-700 mb-1">
-      {label}   {" "}
-    </label>
-    {" "}
-    {children ? (
-      children
-    ) : (
-      <input
-        type={type}
-        defaultValue={value}
-        placeholder={placeholder}
-        className={type === "file" ? fileInputClasses : "form-input"}
-      />
-    )}
-    {" "}
-  </div>
-);
 
 // --- Step 1 Component (Business Information) ---
-const BusinessInformationStep = ({ setStep }) => (
+const BusinessInformationStep = ({ setStep, formData, setFormData }) => (
   <div className="w-full max-w-xl bg-white p-8 rounded-lg shadow-md">
     {" "}
     <h2 className="text-2xl font-bold mb-8 text-gray-800">
@@ -92,46 +63,78 @@ const BusinessInformationStep = ({ setStep }) => (
     </h2>
     {" "}
     <div className="space-y-6">
-      {/* Existing forms */}
-      <FormGroup label="Business Name" value="Acme Crowdfunding PLC" />
-      {" "}
-      <FormGroup label="Business Type">
-        {" "}
-        <select className="form-input" defaultValue="PLC">
-          {" "}
-          <option value="" disabled>
-            Select Business Type
-          </option>
-          <option>Sole Proprietorship</option>         {" "}
-          <option value="PLC">PLC</option>       {" "}
-        </select>
-        {" "}
-      </FormGroup>
-      {" "}
-      <FormGroup label="Industry">
-        {" "}
-        <select className="form-input" defaultValue="Tech">
-          {" "}
-          <option value="" disabled>
-            Select Industry
-          </option>
-          <option value="Tech">Tech</option>         {" "}
-          <option>Finance</option>       {" "}
-        </select>
-        {" "}
-      </FormGroup>
-      {" "}
-      <FormGroup label="Business Description">
-        {" "}
-        <textarea
-          className="form-input h-32 resize-none"
-          placeholder="Tell us about your business and its mission."
+      {/* Business Name */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Business Name
+        </label>
+        <input
+          type="text"
+          value={formData.businessName}
+          onChange={(e) => setFormData(prev => ({ ...prev, businessName: e.target.value }))}
+          placeholder="Enter your business name"
+          className={inputClasses}
+          required
         />
-        {" "}
-      </FormGroup>
-      {" "}
+      </div>
+      
+      {/* Business Type */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Business Type
+        </label>
+        <select 
+          className={inputClasses}
+          value={formData.businessType}
+          onChange={(e) => setFormData(prev => ({ ...prev, businessType: e.target.value }))}
+          required
+        >
+          <option value="" disabled>Select Business Type</option>
+          <option value="Sole Proprietorship">Sole Proprietorship</option>
+          <option value="PLC">PLC</option>
+          <option value="LLC">LLC</option>
+          <option value="Partnership">Partnership</option>
+        </select>
+      </div>
+      
+      {/* Industry */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Industry
+        </label>
+        <select 
+          className={inputClasses}
+          value={formData.industry}
+          onChange={(e) => setFormData(prev => ({ ...prev, industry: e.target.value }))}
+          required
+        >
+          <option value="" disabled>Select Industry</option>
+          <option value="Technology">Technology</option>
+          <option value="Agriculture">Agriculture</option>
+          <option value="Finance">Finance</option>
+          <option value="Healthcare">Healthcare</option>
+          <option value="Education">Education</option>
+          <option value="Manufacturing">Manufacturing</option>
+          <option value="Retail">Retail</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      
+      {/* Business Description */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Business Description
+        </label>
+        <textarea
+          className={`${inputClasses} h-32 resize-none`}
+          placeholder="Tell us about your business and its mission."
+          value={formData.businessDescription}
+          onChange={(e) => setFormData(prev => ({ ...prev, businessDescription: e.target.value }))}
+          required
+        />
+      </div>
     </div>
-    {/* Navigation Buttons */}   {" "}
+    {/* Navigation Buttons */}   {" "}
     <div className="flex justify-between mt-10">
       {" "}
       <button
@@ -139,14 +142,15 @@ const BusinessInformationStep = ({ setStep }) => (
         className="text-gray-400 font-medium py-2 px-4 rounded-lg cursor-not-allowed"
         disabled
       >
-        Back      {" "}
+        Back      {" "}
       </button>
       {" "}
       <button
         onClick={() => setStep(2)}
-        className="bg-orange-600 hover:bg-orange-700 text-white font-semibold py-2 px-6 rounded-lg shadow-md transition duration-150 ease-in-out"
+        className="bg-orange-600 hover:bg-orange-700 text-white font-semibold py-2 px-6 rounded-lg shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+        disabled={!formData.businessName || !formData.businessType || !formData.industry || !formData.businessDescription}
       >
-        Next      {" "}
+        Next      {" "}
       </button>
       {" "}
     </div>
@@ -155,63 +159,114 @@ const BusinessInformationStep = ({ setStep }) => (
 );
 
 // --- Step 2 Component (Founder & Contact) ---
-const FounderContactStep = ({ setStep }) => (
+const FounderContactStep = ({ setStep, formData, setFormData, onSubmit, loading, error }) => (
   <div className="w-full max-w-xl bg-white p-8 rounded-lg shadow-md">
     {" "}
     <h2 className="text-2xl font-bold mb-8 text-gray-800">
       Founder & Contact Details
     </h2>
-    {" "}
+    
+    {/* Error Display */}
+    {error && (
+      <div className="mb-6 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+        {error}
+      </div>
+    )}
+    
     <div className="space-y-6">
       {/* Founder Name */}
-      <FormGroup label="Founder's Full Name" placeholder="Jane Doe" />
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Founder's Full Name
+        </label>
+        <input
+          type="text"
+          value={formData.founderName}
+          onChange={(e) => setFormData(prev => ({ ...prev, founderName: e.target.value }))}
+          placeholder="Jane Doe"
+          className={inputClasses}
+          required
+        />
+      </div>
+      
       {/* Founder Title */}
-      {" "}
-      <FormGroup
-        label="Founder's Title"
-        placeholder="CEO / Managing Director"
-      />
-      {" "}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Founder's Title
+        </label>
+        <input
+          type="text"
+          value={formData.founderTitle}
+          onChange={(e) => setFormData(prev => ({ ...prev, founderTitle: e.target.value }))}
+          placeholder="CEO / Managing Director"
+          className={inputClasses}
+          required
+        />
+      </div>
+      
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Business Email */}
-        {" "}
-        <FormGroup
-          label="Business Contact Email"
-          type="email"
-          placeholder="contact@acme.com"
-        />
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Business Contact Email
+          </label>
+          <input
+            type="email"
+            value={formData.businessEmail}
+            onChange={(e) => setFormData(prev => ({ ...prev, businessEmail: e.target.value }))}
+            placeholder="contact@acme.com"
+            className={inputClasses}
+            required
+          />
+        </div>
+        
         {/* Business Phone */}
-        {" "}
-        <FormGroup
-          label="Business Phone Number"
-          type="tel"
-          placeholder="+1 (555) 123-4567"
-        />
-        {" "}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Business Phone Number
+          </label>
+          <input
+            type="tel"
+            value={formData.businessPhone}
+            onChange={(e) => setFormData(prev => ({ ...prev, businessPhone: e.target.value }))}
+            placeholder="+251 912345678"
+            className={inputClasses}
+            required
+          />
+        </div>
       </div>
+      
       {/* Primary Business Location */}
-      {" "}
-      <FormGroup
-        label="Primary Business Location"
-        placeholder="123 Main St, City, Country"
-      />
-      {" "}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Primary Business Location
+        </label>
+        <input
+          type="text"
+          value={formData.businessLocation}
+          onChange={(e) => setFormData(prev => ({ ...prev, businessLocation: e.target.value }))}
+          placeholder="Addis Ababa, Ethiopia"
+          className={inputClasses}
+          required
+        />
+      </div>
     </div>
-    {/* Navigation Buttons */}   {" "}
+    {/* Navigation Buttons */}   {" "}
     <div className="flex justify-between mt-10">
       {" "}
       <button
         onClick={() => setStep(1)} // Go back to Step 1
-        className="text-gray-500 font-medium py-2 px-4 rounded-lg hover:text-gray-700 transition duration-150 ease-in-out"
+        className="text-gray-500 font-medium py-2 px-4 rounded-lg hover:text-gray-700 hover:bg-gray-50 transition-all duration-200"
       >
-        Back      {" "}
+        Back      {" "}
       </button>
       {" "}
       <button
-        onClick={() => setStep(3)} // Move to next step
-        className="bg-orange-600 hover:bg-orange-700 text-white font-semibold py-2 px-6 rounded-lg shadow-md transition duration-150 ease-in-out"
+        onClick={onSubmit} // Submit the form
+        className="bg-orange-600 hover:bg-orange-700 text-white font-semibold py-2 px-6 rounded-lg shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+        disabled={loading || !formData.founderName || !formData.founderTitle || !formData.businessEmail || !formData.businessPhone || !formData.businessLocation}
       >
-        Next      {" "}
+        {loading ? 'Submitting...' : 'Complete Registration'}
       </button>
       {" "}
     </div>
@@ -219,115 +274,74 @@ const FounderContactStep = ({ setStep }) => (
   </div>
 );
 
-// --- Step 3 Component (Legal & Verification) ---
-const LegalVerificationStep = ({ setStep }) => (
-  <div className="w-full max-w-xl bg-white p-8 rounded-lg shadow-md">
-    {" "}
-    <h2 className="text-2xl font-bold mb-8 text-gray-800">
-      Legal & Verification
-    </h2>
-    {" "}
-    <div className="space-y-6">
-      {/* Official Registration Number */}
-      {" "}
-      <FormGroup
-        label="Official Company Registration Number"
-        placeholder="e.g., UK company number: 12345678"
-      />
-      {/* Tax Identification Number (TIN) Upload */}     {" "}
-      <div>
-        {" "}
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Upload Tax Identification Number (TIN) Certificate 📄
-          {" "}
-        </label>
-        {" "}
-        <FormGroup type="file">
-          {" "}
-          <input
-            type="file"
-            className={fileInputClasses}
-            accept=".pdf,.jpg,.png"
-          />
-          {" "}
-        </FormGroup>
-        {" "}
-        <p className="mt-1 text-xs text-gray-500">
-          Accepted formats: PDF, JPG, PNG. Max size: 10MB.        {" "}
-        </p>
-        {" "}
-      </div>
-      <hr className="border-t border-gray-200" />     {" "}
-      {/* Bank Account Details */}
-      {" "}
-      <FormGroup
-        label="Business Bank Account Name"
-        placeholder="Acme Crowdfunding PLC"
-      />
-      {" "}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {" "}
-        <FormGroup
-          label="IBAN/Account Number"
-          placeholder="GB98 BARC 2000 0012 3456 78"
-        />
-        <FormGroup label="SWIFT/BIC Code" placeholder="BARCGB22" />     {" "}
-      </div>
-      {/* Compliance Check */}     {" "}
-      <div className="flex items-start pt-4">
-        {" "}
-        <input
-          id="compliance"
-          type="checkbox"
-          className="mt-1 h-4 w-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
-        />
-        {" "}
-        <label
-          htmlFor="compliance"
-          className="ml-3 block text-sm text-gray-700"
-        >
-          I confirm that the business is compliant with all local tax
-          and legal regulations.        {" "}
-        </label>
-        {" "}
-      </div>
-      {" "}
-    </div>
-    {/* Navigation Buttons */}   {" "}
-    <div className="flex justify-between mt-10">
-      {" "}
-      <button
-        onClick={() => setStep(2)} // Go back to Step 2
-        className="text-gray-500 font-medium py-2 px-4 rounded-lg hover:text-gray-700 transition duration-150 ease-in-out"
-      >
-        Back      {" "}
-      </button>
-      {" "}
-      <button
-        onClick={() => console.log("SUBMITTING FORM...")} // Final submission
-        className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-lg shadow-md transition duration-150 ease-in-out"
-      >
-        Submit & Complete      {" "}
-      </button>
-      {" "}
-    </div>
-    {" "}
-  </div>
-);
 
 // --- Main Business Onboarding Component ---
 
 export default function BusinessOnboarding() {
+  const navigate = useNavigate();
+  const { currentUser } = useAuth();
   const [step, setStep] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  
+  // Form data state
+  const [formData, setFormData] = useState({
+    // Step 1: Business Information
+    businessName: '',
+    businessType: '',
+    industry: '',
+    businessDescription: '',
+    
+    // Step 2: Founder & Contact
+    founderName: '',
+    founderTitle: '',
+    businessEmail: '',
+    businessPhone: '',
+    businessLocation: ''
+  });
+
+  // Handle form submission - save to local storage
+  const handleSubmit = () => {
+    setError(null);
+    setLoading(true);
+
+    try {
+      // Prepare business data
+      const businessData = {
+        ...formData,
+        registrationDate: new Date().toISOString(),
+        status: 'active'
+      };
+
+      // Save to local storage
+      localStorage.setItem('businessRegistration', JSON.stringify(businessData));
+      
+      // Also save to user profile in local storage
+      const userProfile = {
+        businessRegistered: true,
+        businessRegistrationCompletedAt: new Date().toISOString()
+      };
+      localStorage.setItem('userProfile', JSON.stringify(userProfile));
+
+      console.log("Business registration completed successfully and saved to local storage!");
+      
+      // Redirect to business dashboard
+      navigate('/b');
+
+    } catch (err) {
+      console.error("Error registering business:", err);
+      setError(`Failed to register business: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const renderStep = () => {
     switch (step) {
       case 1:
-        return <BusinessInformationStep setStep={setStep} />;
+        return <BusinessInformationStep setStep={setStep} formData={formData} setFormData={setFormData} />;
       case 2:
-        return <FounderContactStep setStep={setStep} />;
-      case 3:
-        return <LegalVerificationStep setStep={setStep} />;
+        return <FounderContactStep setStep={setStep} formData={formData} setFormData={setFormData} onSubmit={handleSubmit} loading={loading} error={error} />;
       default:
         return <div>Step Not Found</div>;
     }
@@ -366,12 +380,6 @@ export default function BusinessOnboarding() {
         {" "}
       </div>
       {/* Inject the form-input style */}     {" "}
-      <style jsx global>{`
-        .form-input {
-          ${inputClasses}
-        }
-      `}</style>
-      {" "}
     </div>
   );
 }

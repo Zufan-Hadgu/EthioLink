@@ -209,8 +209,16 @@ const handleLogin = async (e) => {
             // 3. 🚦 Conditional Navigation
             if (userRole === 'Supporter') {
                 navigate('/');
+            } else if (userRole === 'Entrepreneur') {
+                // Check if business is already registered
+                const businessRegistered = userDoc.data().businessRegistered;
+                if (businessRegistered) {
+                    navigate('/b'); // Go to business dashboard
+                } else {
+                    navigate('/biussness'); // Go to business registration
+                }
             } else {
-                navigate('/b'); 
+                navigate('/b'); // Default for other roles
             }
 
         } catch (err) {

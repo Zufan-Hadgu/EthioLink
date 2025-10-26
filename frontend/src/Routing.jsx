@@ -22,7 +22,6 @@ export default function Routing() {
       <Route path="/fund" element={<SupportPage />} />
       <Route path="/" element={<Dashboard />} />
       <Route path="/product/:id" element={<ProductDetail />} />
-
       <Route path="/create" element={<CreatePage />} />
       <Route path="/b" element={<DashboardPage />} />
     </Routes>
